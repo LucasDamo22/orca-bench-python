@@ -25,7 +25,7 @@ class colors:
 
 
 def info(*msg, end=TERMINAL_ENDLINE):
-    raw_print("warn", msg, colors.INFO, end)
+    raw_print("info", msg, colors.INFO, end)
 
 
 def error(*msg, end=TERMINAL_ENDLINE):

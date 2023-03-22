@@ -33,3 +33,4 @@ class EarliestDeadlineFirst(SchedulingAlgorithm):
     @classmethod
     def schedule(self: "EarliestDeadlineFirst", r: list[TaskControlBlock]):
         sorted(r, key=lambda e: e._next_deadline, reverse=False)
+        

@@ -34,4 +34,3 @@
 - [João Benno](https://github.com/bennoXav)
 - [Lucas Damo](https://github.com/LucasDamo22)
 
-# orca-bench-python

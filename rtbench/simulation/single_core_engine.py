@@ -64,14 +64,16 @@ class SingleCoreEngine:
 
         iterations = 0
         start_time = 0
-
-        print(repr(self._queue.queue))
-
+        
+        
         while self._system_time < time:
             
             top_event: SystemEvent = self._queue.get()
             
+            
             self._elapsed_time = top_event._time - self._system_time
+           
+
             self._system_time += self._elapsed_time
             
             # warning
@@ -97,23 +99,18 @@ class SingleCoreEngine:
                 irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
                 self._queue.put(irq_event, irq_event._time)
 
-
-
             # register next task finish within the simulation
             next_task = self._running[0]
-            print("running sgce")
-            print(self._running)
-
+            
             info(iterations, start_time, self._system_time, self._system_time)
             start_time = self._system_time
             iterations += 1
-
+            
             # slack time
             if next_task is not None:
                 top_event._time = self._system_time + (
                     next_task._capacity - next_task._current_capacity
                 )
-
                 top_event.type = SystemEventType.TASK_FINISHED_IRQ
                 self._queue.put(top_event, top_event.get_time())
                 warn("running task")
@@ -126,25 +123,33 @@ class SingleCoreEngine:
                 )
             else:
                 warn("slack time")
-
+            
+            info("sistem time", self._system_time)
             self.print_task_list()
-            return self._system_time
+            
+        
+        return self._system_time
 
     def schedule(self: "SingleCoreEngine", algorithm: SchedulingAlgorithm):
         for t in self._running:
             # add elapsed time to current capacity of the task
-            t._ccurrent_capacity += self._elapsed_time
-
+            t._current_capacity += self._elapsed_time
+            print("current")
+            print(t._current_capacity)
+            print("capa")
+            print(t._capacity)
             # case A: task has timed out, preempted
             if t._current_capacity < t._capacity:
-                self._ready.push(t)
+                print("foi pro ready")
+                self._ready.append(t)
 
             # case B: task has finished succeffuly
             else:
+                print("foi pro blocked")
                 t._release_time += t._period
                 t._current_capacity = 0
                 t._next_deadline += t._deadline
-                self._blocked.push(t)
+                self._blocked.append(t)
 
         # clear running list as tasks were added to other lists
         self._running.clear()
@@ -177,17 +182,17 @@ class SingleCoreEngine:
 
     def print_task_list(self: "SingleCoreEngine"):
         # print lists
-        print("==============================================")
-        print("----- running")
+        info("==============================================")
+        info("----- running")
         for t in self._running:
-            print(str(t))
+            info(str(t))
 
-        print("----- ready")
+        info("----- ready")
         for t in self._ready:
-            print(str(t))
+            info(str(t))
 
-        print("----- blocked")
+        info("----- blocked")
         for t in self._blocked:
-            print(str(t))
+            info(str(t))
 
-        print("==============================================")
+        info("==============================================")
