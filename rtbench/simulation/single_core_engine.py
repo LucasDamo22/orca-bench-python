@@ -57,6 +57,17 @@ class SingleCoreEngine:
             self._blocked.append(tlb)
             
         self._algorithm = algorithm
+    def printrunning(self: "SingleCoreEngine"):
+        for t in self._running:
+            print(f"RUNNING - id {t._id} current {t._current_capacity} capa {t._capacity}")
+    
+    def printready(self: "SingleCoreEngine"):
+        for t in self._ready:
+            print(f"READY - id {t._id} current {t._current_capacity} capa {t._capacity}")
+    def printblocked(self: "SingleCoreEngine"):
+        for t in self._blocked:
+            print(f"BLOCKED - id {t._id} current {t._current_capacity} capa {t._capacity}")
+
 
     def simulate(self: "SingleCoreEngine", time: int):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
@@ -67,11 +78,18 @@ class SingleCoreEngine:
         
         
         while self._system_time < time:
+            self.printready()
+            self.printrunning()
+            self.printblocked()
             
             top_event: SystemEvent = self._queue.get()
             
             
             self._elapsed_time = top_event._time - self._system_time
+            print(f"{top_event._time}<-top event time")
+            print(f"{self._system_time}<-system time")
+            print(f"{self._elapsed_time}<-elapsed time")
+            
            
 
             self._system_time += self._elapsed_time
@@ -134,10 +152,13 @@ class SingleCoreEngine:
         for t in self._running:
             # add elapsed time to current capacity of the task
             t._current_capacity += self._elapsed_time
-            print("current")
-            print(t._current_capacity)
-            print("capa")
-            print(t._capacity)
+            #print("current")
+            #print(t._current_capacity)
+            #print("capa")
+            #print(t._capacity)
+            #print(f"{self._elapsed_time} <-elapsed time")
+            #self.printrunning()
+            
             # case A: task has timed out, preempted
             if t._current_capacity < t._capacity:
                 print("foi pro ready")
@@ -177,6 +198,7 @@ class SingleCoreEngine:
 
             if task._next_deadline < self._system_time:
                 error("missed deadline!")
+                print(f"task{self._ready[0]}")
 
         return self._system_time
 
