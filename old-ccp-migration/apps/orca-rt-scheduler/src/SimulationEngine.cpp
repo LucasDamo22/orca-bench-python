@@ -35,7 +35,7 @@
 #include "KprofilerFileHandler.hpp"
 
 // ms
-#define SCHED_IRQ_PERIOD 1
+#define SCHED_IRQ_PERIOD 20
 
 namespace OrcaSeer::Simulation {
 
@@ -89,7 +89,11 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
         // update current time
         this->elapsedTime = top_event.time - this->systemTime;
         this->systemTime += this->elapsedTime;
-
+        std::cout<<"++++++++++++++++++"<<std::endl;
+        std::cout<< "TOP EVENT TIME"<< top_event.time << std::endl;
+        std::cout<< "elapsed time" <<this->elapsedTime <<std::endl;
+        std::cout<<"system time "<<this->systemTime<<std::endl;
+        std::cout<<"++++++++++++++++++"<<std::endl;
         std::cout << this->systemTime << ": " <<
             (top_event.type == SystemEventType::TASK_FINISHED_IRQ
                 ? "task finished"
@@ -224,6 +228,7 @@ void SimulationEngine::PrintTaskLists() {
 
     // print lists
     std::cout << "==============================================" << std::endl;
+    std::cout << this->systemTime<< " <-system time" << std::endl;
     std::cout << "----- running" << std::endl;
 
     for (i = running->begin(); i != running->end(); ++i)

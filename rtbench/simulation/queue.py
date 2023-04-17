@@ -24,34 +24,31 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
-
-
-class TaskControlBlock:
-    def __eq__(self: "TaskControlBlock", target: "TaskControlBlock"):
-        return self._id == target._id
-
-    def __init__(
-        self: "TaskControlBlock",
-        id: int,
-        name: str,
-        period: int,
-        capacity: int,
-        deadline: int,
-    ):
-        self._id = id
-        self._name = name
-        self._period = period
-        self._capacity = capacity
-        self._deadline = deadline
-
-        self._current_capacity = 0
-        self._release_time = 0
-        self._next_deadline = self._deadline
-
-    def __str__(self: "TaskControlBlock"):
-        ss = "[" + str(self._id) + "] " + self._name
-        ss += ", p:" + str(self._period)
-        ss += ", c:" + str(self._current_capacity) + "/" + str(self._capacity)
-        ss += ", d:" + str(self._next_deadline) + "/" + str(self._deadline)
-        ss += ", " + str(self._current_capacity)
-        return ss
+class PriorityQueue(object):
+    def __init__(self):
+        self.queue = []
+ 
+    def __str__(self):
+        return ' '.join([str(i) for i in self.queue])
+ 
+    # for checking if the queue is empty
+    def isEmpty(self):
+        return len(self.queue) == 0
+ 
+    # for inserting an element in the queue
+    def insert(self, data):
+        self.queue.append(data)
+ 
+    # for popping an element based on Priority
+    def delete(self):
+        try:
+            max_val = 0
+            for i in range(len(self.queue)):
+                if self.queue[i] > self.queue[max_val]:
+                    max_val = i
+            item = self.queue[max_val]
+            del self.queue[max_val]
+            return item
+        except IndexError:
+            print()
+            exit()

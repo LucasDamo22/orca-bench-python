@@ -34,7 +34,7 @@ from rtbench.simulation.system_event import SystemEvent, SystemEventType
 
 
 class SingleCoreEngine:
-    SCHED_IRQ_PERIOD = 20
+    SCHED_IRQ_PERIOD = 5
 
     def __init__(
         self: "SingleCoreEngine", task_graph: Graph, algorithm: SchedulingAlgorithm
@@ -57,6 +57,8 @@ class SingleCoreEngine:
             self._blocked.append(tlb)
             
         self._algorithm = algorithm
+
+
     def printrunning(self: "SingleCoreEngine"):
         for t in self._running:
             print(f"RUNNING - id {t._id} current {t._current_capacity} capa {t._capacity}")
@@ -78,22 +80,23 @@ class SingleCoreEngine:
         
         
         while self._system_time < time:
+            print("--------------------------------------------------------")
             self.printready()
             self.printrunning()
             self.printblocked()
             
             top_event: SystemEvent = self._queue.get()
+            print("''''")
+            print(top_event.__str__())
             
             
             self._elapsed_time = top_event._time - self._system_time
+            self._system_time += self._elapsed_time
+            
+            
             print(f"{top_event._time}<-top event time")
             print(f"{self._system_time}<-system time")
             print(f"{self._elapsed_time}<-elapsed time")
-            
-           
-
-            self._system_time += self._elapsed_time
-            
             # warning
             if top_event._type == SystemEventType.TASK_FINISHED_IRQ:
                 warn(str(self._system_time) + ": task finished")
@@ -104,7 +107,16 @@ class SingleCoreEngine:
             # put the finished task into the blocked queue and process
             # a new task to take its place
             self.schedule(self._algorithm)
-
+            '''
+            print(f"{top_event.get_time}<-topeventGetTime")
+            print(f"{top_event.get_type}<-topeventGetType")
+            print(f"{SystemEventType.SCHEDULER_IRQ}<-systemSchedulerIRQ")
+            
+            if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
+                print("yes")
+            else:
+                print("NO")
+            '''
             # Next event is the scheduler interruption
             if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
                 # remove all events from the simulation queue; since the
@@ -112,6 +124,7 @@ class SingleCoreEngine:
                 # running task remains
                 while self._queue.qsize() > 0:
                     self._queue.get()
+                    print(f"{self._queue.get()}")
 
                 # register the interruption
                 irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
@@ -151,12 +164,16 @@ class SingleCoreEngine:
     def schedule(self: "SingleCoreEngine", algorithm: SchedulingAlgorithm):
         for t in self._running:
             # add elapsed time to current capacity of the task
+
             t._current_capacity += self._elapsed_time
+            
             #print("current")
             #print(t._current_capacity)
             #print("capa")
             #print(t._capacity)
-            #print(f"{self._elapsed_time} <-elapsed time")
+            print(f"{t._id}<-ID")
+            print(f"{t._capacity}<-capacity")
+            print(f"{self._elapsed_time} <-elapsed time schedule")
             #self.printrunning()
             
             # case A: task has timed out, preempted
@@ -205,6 +222,7 @@ class SingleCoreEngine:
     def print_task_list(self: "SingleCoreEngine"):
         # print lists
         info("==============================================")
+        print(f"{self._system_time}<-SYSTEM TIME ON PTKLS")
         info("----- running")
         for t in self._running:
             info(str(t))
