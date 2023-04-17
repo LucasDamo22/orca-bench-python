@@ -31,16 +31,17 @@ from rtbench.modeling.graph import Graph
 from rtbench.scheduling.scheduling_algorithm import SchedulingAlgorithm
 from rtbench.simulation.task_control_block import TaskControlBlock
 from rtbench.simulation.system_event import SystemEvent, SystemEventType
+from rtbench.simulation.queue import PrioQueue
 
 
 class SingleCoreEngine:
-    SCHED_IRQ_PERIOD = 5
+    SCHED_IRQ_PERIOD = 4
 
     def __init__(
         self: "SingleCoreEngine", task_graph: Graph, algorithm: SchedulingAlgorithm
     ):
         self._system_time: int = 0
-        self._queue = PriorityQueue()
+        self._queue = PrioQueue()
         self._running = []
         self._blocked = []
         self._ready = []
@@ -62,7 +63,6 @@ class SingleCoreEngine:
     def printrunning(self: "SingleCoreEngine"):
         for t in self._running:
             print(f"RUNNING - id {t._id} current {t._current_capacity} capa {t._capacity}")
-    
     def printready(self: "SingleCoreEngine"):
         for t in self._ready:
             print(f"READY - id {t._id} current {t._current_capacity} capa {t._capacity}")
@@ -73,30 +73,45 @@ class SingleCoreEngine:
 
     def simulate(self: "SingleCoreEngine", time: int):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
-        self._queue.put(irq_event, 0)
+        self._queue.add(irq_event)
 
         iterations = 0
         start_time = 0
-        
+
+        '''
+        print("--------------------------------------------------------")
+        print("types")
+        print(type(self._system_time))
+        print(type(self._queue))
+        print(type(self._running))
+        print(type(self._blocked))
+        print(type(self._ready))
+        print(type(time))
+        print(type(time))
+
+        print("--------------------------------------------------------")
+        '''
         
         while self._system_time < time:
-            print("--------------------------------------------------------")
-            self.printready()
-            self.printrunning()
-            self.printblocked()
+            #print("--------------------------------------------------------")
+            #self.printready()
+            #self.printrunning()
+            #self.printblocked()
             
-            top_event: SystemEvent = self._queue.get()
-            print("''''")
-            print(top_event.__str__())
+            top_event: SystemEvent = self._queue.pop()
+
+            
+            #print("''''")
+            #print(top_event.__str__())
             
             
             self._elapsed_time = top_event._time - self._system_time
             self._system_time += self._elapsed_time
             
             
-            print(f"{top_event._time}<-top event time")
-            print(f"{self._system_time}<-system time")
-            print(f"{self._elapsed_time}<-elapsed time")
+            #print(f"{top_event._time}<-top event time")
+            #print(f"{self._system_time}<-system time")
+            #print(f"{self._elapsed_time}<-elapsed time")
             # warning
             if top_event._type == SystemEventType.TASK_FINISHED_IRQ:
                 warn(str(self._system_time) + ": task finished")
@@ -122,20 +137,23 @@ class SingleCoreEngine:
                 # remove all events from the simulation queue; since the
                 # scheduler_irq has been removed, only the event for the
                 # running task remains
-                while self._queue.qsize() > 0:
-                    self._queue.get()
-                    print(f"{self._queue.get()}")
+                while self._queue.__len__() > 0:
+                    self._queue.pop()
+                    #print(f"{self._queue.get()}")
 
                 # register the interruption
                 irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
-                self._queue.put(irq_event, irq_event._time)
+                self._queue.add(irq_event)
 
             # register next task finish within the simulation
             next_task = self._running[0]
-            
+
+            #aaa=666
             info(iterations, start_time, self._system_time, self._system_time)
             start_time = self._system_time
             iterations += 1
+            
+            #print(f"{next_task._current_capacity}<-next task capacity")
             
             # slack time
             if next_task is not None:
@@ -143,7 +161,7 @@ class SingleCoreEngine:
                     next_task._capacity - next_task._current_capacity
                 )
                 top_event.type = SystemEventType.TASK_FINISHED_IRQ
-                self._queue.put(top_event, top_event.get_time())
+                self._queue.add(top_event)
                 warn("running task")
 
                 info(
@@ -171,19 +189,19 @@ class SingleCoreEngine:
             #print(t._current_capacity)
             #print("capa")
             #print(t._capacity)
-            print(f"{t._id}<-ID")
-            print(f"{t._capacity}<-capacity")
-            print(f"{self._elapsed_time} <-elapsed time schedule")
+            #print(f"{t._id}<-ID")
+            #print(f"{t._capacity}<-capacity")
+            #print(f"{self._elapsed_time} <-elapsed time schedule")
             #self.printrunning()
             
             # case A: task has timed out, preempted
             if t._current_capacity < t._capacity:
-                print("foi pro ready")
+                #print("foi pro ready")
                 self._ready.append(t)
 
             # case B: task has finished succeffuly
             else:
-                print("foi pro blocked")
+                #print("foi pro blocked")
                 t._release_time += t._period
                 t._current_capacity = 0
                 t._next_deadline += t._deadline
@@ -215,14 +233,14 @@ class SingleCoreEngine:
 
             if task._next_deadline < self._system_time:
                 error("missed deadline!")
-                print(f"task{self._ready[0]}")
+               # print(f"task{self._ready[0]}")
 
         return self._system_time
 
     def print_task_list(self: "SingleCoreEngine"):
         # print lists
         info("==============================================")
-        print(f"{self._system_time}<-SYSTEM TIME ON PTKLS")
+        #print(f"{self._system_time}<-SYSTEM TIME ON PTKLS")
         info("----- running")
         for t in self._running:
             info(str(t))
