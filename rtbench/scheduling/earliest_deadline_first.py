@@ -32,5 +32,5 @@ from rtbench.simulation.task_control_block import TaskControlBlock
 class EarliestDeadlineFirst(SchedulingAlgorithm):
     @classmethod
     def schedule(self: "EarliestDeadlineFirst", r: list[TaskControlBlock]):
-        sorted(r, key=lambda e: e._next_deadline, reverse=False)
+        return sorted(r, key=lambda e: e._next_deadline, reverse=False)
         

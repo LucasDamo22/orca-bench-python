@@ -70,7 +70,6 @@ def main(args: list[str]):
     }
 
     alg_class = algorithms[algorithm]
-    print(f"main algoritmo {alg_class}")
     engine = SingleCoreEngine(graph, alg_class)
     engine.simulate(ticks)
 

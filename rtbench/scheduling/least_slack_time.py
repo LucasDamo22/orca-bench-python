@@ -31,4 +31,4 @@ from rtbench.simulation.task_control_block import TaskControlBlock
 
 class LeastSlackTime(SchedulingAlgorithm):
     def schedule(self: "LeastSlackTime", r: list[TaskControlBlock]):
-        sorted(r, key=lambda e: e._capacity - e._current_capacity, reverse=False)
+        return sorted(r, key=lambda e: e._capacity - e._current_capacity, reverse=False)

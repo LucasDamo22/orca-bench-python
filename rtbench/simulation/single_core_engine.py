@@ -35,7 +35,7 @@ from rtbench.simulation.queue import PrioQueue
 
 
 class SingleCoreEngine:
-    SCHED_IRQ_PERIOD = 4
+    SCHED_IRQ_PERIOD = 20
 
     def __init__(
         self: "SingleCoreEngine", task_graph: Graph, algorithm: SchedulingAlgorithm
@@ -77,41 +77,17 @@ class SingleCoreEngine:
 
         iterations = 0
         start_time = 0
-
-        '''
-        print("--------------------------------------------------------")
-        print("types")
-        print(type(self._system_time))
-        print(type(self._queue))
-        print(type(self._running))
-        print(type(self._blocked))
-        print(type(self._ready))
-        print(type(time))
-        print(type(time))
-
-        print("--------------------------------------------------------")
-        '''
-        
+  
         while self._system_time < time:
-            #print("--------------------------------------------------------")
             #self.printready()
             #self.printrunning()
             #self.printblocked()
             
             top_event: SystemEvent = self._queue.pop()
 
-            
-            #print("''''")
-            #print(top_event.__str__())
-            
-            
             self._elapsed_time = top_event._time - self._system_time
             self._system_time += self._elapsed_time
             
-            
-            #print(f"{top_event._time}<-top event time")
-            #print(f"{self._system_time}<-system time")
-            #print(f"{self._elapsed_time}<-elapsed time")
             # warning
             if top_event._type == SystemEventType.TASK_FINISHED_IRQ:
                 warn(str(self._system_time) + ": task finished")
@@ -122,16 +98,7 @@ class SingleCoreEngine:
             # put the finished task into the blocked queue and process
             # a new task to take its place
             self.schedule(self._algorithm)
-            '''
-            print(f"{top_event.get_time}<-topeventGetTime")
-            print(f"{top_event.get_type}<-topeventGetType")
-            print(f"{SystemEventType.SCHEDULER_IRQ}<-systemSchedulerIRQ")
-            
-            if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
-                print("yes")
-            else:
-                print("NO")
-            '''
+
             # Next event is the scheduler interruption
             if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
                 # remove all events from the simulation queue; since the
@@ -139,21 +106,20 @@ class SingleCoreEngine:
                 # running task remains
                 while self._queue.__len__() > 0:
                     self._queue.pop()
-                    #print(f"{self._queue.get()}")
 
                 # register the interruption
                 irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
                 self._queue.add(irq_event)
 
             # register next task finish within the simulation
-            next_task = self._running[0]
+            if len(self._running)==0:
+                next_task = None
+            else:
+                next_task = self._running[0]
 
-            #aaa=666
             info(iterations, start_time, self._system_time, self._system_time)
             start_time = self._system_time
             iterations += 1
-            
-            #print(f"{next_task._current_capacity}<-next task capacity")
             
             # slack time
             if next_task is not None:
@@ -182,26 +148,14 @@ class SingleCoreEngine:
     def schedule(self: "SingleCoreEngine", algorithm: SchedulingAlgorithm):
         for t in self._running:
             # add elapsed time to current capacity of the task
-
             t._current_capacity += self._elapsed_time
-            
-            #print("current")
-            #print(t._current_capacity)
-            #print("capa")
-            #print(t._capacity)
-            #print(f"{t._id}<-ID")
-            #print(f"{t._capacity}<-capacity")
-            #print(f"{self._elapsed_time} <-elapsed time schedule")
-            #self.printrunning()
-            
+             
             # case A: task has timed out, preempted
             if t._current_capacity < t._capacity:
-                #print("foi pro ready")
                 self._ready.append(t)
 
             # case B: task has finished succeffuly
             else:
-                #print("foi pro blocked")
                 t._release_time += t._period
                 t._current_capacity = 0
                 t._next_deadline += t._deadline
@@ -223,7 +177,7 @@ class SingleCoreEngine:
             self._blocked.remove(t)
 
         # sort ready list (using sort algorithm)
-        self._algorithm.schedule(self._ready)
+        self._ready = self._algorithm.schedule(self._ready)
 
         # get first element and push it to the executing queue (if any)
         if len(self._ready) != 0:
@@ -233,14 +187,11 @@ class SingleCoreEngine:
 
             if task._next_deadline < self._system_time:
                 error("missed deadline!")
-               # print(f"task{self._ready[0]}")
 
         return self._system_time
 
     def print_task_list(self: "SingleCoreEngine"):
-        # print lists
         info("==============================================")
-        #print(f"{self._system_time}<-SYSTEM TIME ON PTKLS")
         info("----- running")
         for t in self._running:
             info(str(t))
