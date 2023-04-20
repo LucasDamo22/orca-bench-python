@@ -38,6 +38,7 @@ struct GraphNodeData{
     float cpDever;
     float cpA56;
     float cpGPU;
+    float capacity;
     float deadline;
     float period;
 };

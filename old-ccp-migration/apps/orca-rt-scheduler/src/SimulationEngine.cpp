@@ -51,18 +51,23 @@ SimulationEngine::SimulationEngine(OrcaSeer::Graph::Graph* graph, // @suppress("
     std::list<OrcaSeer::Graph::GraphNode*>::iterator i;
     for (i = graph->getNodes()->begin(); i != graph->getNodes()->end(); ++i) {
         OrcaSeer::Graph::GraphNode* node = *i;
-
+            //std::cout<<node->getData()->deadline<<"  <-DEADLINE"<<std::endl;
+            std::cout<<node->getData()->id<<"  <-ID"<<std::endl;
+            std::cout<<node->getData()->name<<"  <-NAME"<<std::endl;
+            std::cout<<node->getData()->period<<"  <-PERIOD"<<std::endl;
+            std::cout<<node->getData()->capacity<<"  <-Capacity"<<std::endl;
+            std::cout<<node->getData()->deadline<<"  <-DEADLINE"<<std::endl;
         OrcaSeer::Task::TaskControlBlock* block
             = new OrcaSeer::Task::TaskControlBlock(
             node->getData()->id,
             node->getData()->name,
             node->getData()->period,
-            node->getData()->cpDever,
+            node->getData()->capacity,
             node->getData()->deadline);
 
         this->blocked->push_back(block);
     }
-
+    
     this->algorithm = algo;
 }
 
@@ -89,11 +94,11 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
         // update current time
         this->elapsedTime = top_event.time - this->systemTime;
         this->systemTime += this->elapsedTime;
-        std::cout<<"++++++++++++++++++"<<std::endl;
-        std::cout<< "TOP EVENT TIME"<< top_event.time << std::endl;
-        std::cout<< "elapsed time" <<this->elapsedTime <<std::endl;
-        std::cout<<"system time "<<this->systemTime<<std::endl;
-        std::cout<<"++++++++++++++++++"<<std::endl;
+        //std::cout<<"++++++++++++++++++"<<std::endl;
+        //std::cout<< "TOP EVENT TIME"<< top_event.time << std::endl;
+        //std::cout<< "elapsed time" <<this->elapsedTime <<std::endl;
+        //std::cout<<"system time "<<this->systemTime<<std::endl;
+        //std::cout<<"++++++++++++++++++"<<std::endl;
         std::cout << this->systemTime << ": " <<
             (top_event.type == SystemEventType::TASK_FINISHED_IRQ
                 ? "task finished"
@@ -119,9 +124,12 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
         }
 
         // register next task finish within the simulation
-        OrcaSeer::Task::TaskControlBlock* next_task
-                = this->running->front();
-
+        OrcaSeer::Task::TaskControlBlock* next_task;
+        if(this->running->size()==0){
+            next_task = nullptr;
+        }else{
+            next_task = this->running->front();
+        }
         // assuming scheduling is instant
         line.finish = systemTime;
         line.finish2 = systemTime;
@@ -133,7 +141,11 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
             line.finish2);
 
         line.startTime = systemTime;
-
+        if(next_task ==  nullptr){
+            std::cout<<"nullptr"<<std::endl;
+        }else{
+            std::cout<<"not nullptr"<<std::endl;
+        }
         // slack time
         if (next_task != nullptr) {
             top_event.time = this->systemTime + (
@@ -158,7 +170,8 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
     } while (this->systemTime < milliseconds);
 
     handler.saveToFile("C:/Users/jbweb/OneDrive/Desktop/Repositorios-GitHub/ORB_KProfiller/output.orca");
-
+   // std::string a;
+   // std::cin >> a;
     return this->systemTime;
 }
 
@@ -225,15 +238,20 @@ SimulationTime SimulationEngine::Schedule(
 
 void SimulationEngine::PrintTaskLists() {
     std::list<OrcaSeer::Task::TaskControlBlock*>::iterator i;
-
+    //i=running->begin();
+    if(i !=nullptr)
+        std::cout<<"aaaaaa nullptr"<<std::endl;
     // print lists
     std::cout << "==============================================" << std::endl;
     std::cout << this->systemTime<< " <-system time" << std::endl;
     std::cout << "----- running" << std::endl;
-
-    for (i = running->begin(); i != running->end(); ++i)
+    //std::cout << running->begin()<<std::endl;
+    
+    for (i = running->begin(); i != running->end(); ++i){
+        //if(*i=nullptr)
+        //break;
         std::cout << (*i)->toString() << std::endl;
-
+    }
     std::cout << "----- ready" << std::endl;
 
     for (i = ready->begin(); i != ready->end(); ++i)

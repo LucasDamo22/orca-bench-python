@@ -35,3 +35,8 @@
 1       T1        20         3          20
 2       T2        5          2          5
 3       T3        10         2          10
+
+#cd old-ccp-migration
+#make
+#cd ..
+#./old-ccp-migration/bin/orca-rt-scheduler.exe 20 ./examples/foundations-table3.2.ogm EDF

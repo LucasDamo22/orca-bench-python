@@ -99,7 +99,7 @@ std::string Graph::ToString() {
     for (i = nodes->begin(); i != nodes->end(); i++) {
         data = *((*i)->getData());
         ss << data.id << "\t" << data.name << " "
-            << "\t\t\t" << data.cpDever << std::endl;
+            << "\t\t\t" << data.capacity << std::endl;
     }
 
     if (nodes->size() == 0) ss << "none" << std::endl;
