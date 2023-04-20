@@ -124,8 +124,9 @@ class SingleCoreEngine:
             # slack time
             if next_task is not None:
                 top_event._time = self._system_time + (
-                    next_task._capacity - next_task._current_capacity
+                     next_task._capacity - next_task._current_capacity
                 )
+                
                 top_event.type = SystemEventType.TASK_FINISHED_IRQ
                 self._queue.add(top_event)
                 warn("running task")
@@ -142,7 +143,6 @@ class SingleCoreEngine:
             info("sistem time", self._system_time)
             self.print_task_list()
             
-        
         return self._system_time
 
     def schedule(self: "SingleCoreEngine", algorithm: SchedulingAlgorithm):
@@ -188,7 +188,7 @@ class SingleCoreEngine:
             if task._next_deadline < self._system_time:
                 error("missed deadline!",task._id)
 
-        return self._system_time
+        #return self._system_time
 
     def print_task_list(self: "SingleCoreEngine"):
         info("==============================================")
