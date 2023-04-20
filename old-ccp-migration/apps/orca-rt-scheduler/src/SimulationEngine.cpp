@@ -41,6 +41,7 @@ namespace OrcaSeer::Simulation {
 
 SimulationEngine::SimulationEngine(OrcaSeer::Graph::Graph* graph, // @suppress("Class members should be properly initialized")
  OrcaSeer::Task::SchedulingAlgorithm* algo) {
+    std::cout<<"constructor"<<std::endl;
     this->systemTime = 0;  // system starts at second zero
     this->queue = new std::priority_queue<SystemEvent>();
     this->running = new std::list<OrcaSeer::Task::TaskControlBlock*>();
@@ -51,6 +52,7 @@ SimulationEngine::SimulationEngine(OrcaSeer::Graph::Graph* graph, // @suppress("
     std::list<OrcaSeer::Graph::GraphNode*>::iterator i;
     for (i = graph->getNodes()->begin(); i != graph->getNodes()->end(); ++i) {
         OrcaSeer::Graph::GraphNode* node = *i;
+            
             //std::cout<<node->getData()->deadline<<"  <-DEADLINE"<<std::endl;
             std::cout<<node->getData()->id<<"  <-ID"<<std::endl;
             std::cout<<node->getData()->name<<"  <-NAME"<<std::endl;
@@ -74,6 +76,7 @@ SimulationEngine::SimulationEngine(OrcaSeer::Graph::Graph* graph, // @suppress("
 SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
     // adds a new event to the simulation queue to call the
     // scheduler at time=zero
+    std::cout<<"simulate"<<std::endl;
     SystemEvent sched_irq = SystemEvent(0, SystemEventType::SCHEDULER_IRQ);
     queue->push(sched_irq);
 
@@ -82,6 +85,7 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
     OrcaSeer::Kprofiler::KprofilerLineData line;
 
     do {
+        std::cout<<"simulate do init"<<std::endl;
         // Remove next event from the simulation queue. If this is the
         // beggining of the simulation, the queue should have only one
         // event, the scheduler_irq routine. The rest of the simulation
@@ -125,7 +129,7 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
 
         // register next task finish within the simulation
         OrcaSeer::Task::TaskControlBlock* next_task;
-        if(this->running->size()==0){
+        if(this->running->empty()){
             next_task = nullptr;
         }else{
             next_task = this->running->front();
@@ -165,8 +169,9 @@ SimulationTime SimulationEngine::Simulate(SimulationTime milliseconds) {
             line.id = 0;  // slacktime
         }
 
-        PrintTaskLists();
+        //PrintTaskLists();
         //
+        std::cout<<"simulate do end"<<std::endl;
     } while (this->systemTime < milliseconds);
 
     handler.saveToFile("C:/Users/jbweb/OneDrive/Desktop/Repositorios-GitHub/ORB_KProfiller/output.orca");
@@ -181,6 +186,14 @@ SimulationTime SimulationEngine::Schedule(
     std::list<OrcaSeer::Task::TaskControlBlock*>::iterator i;
 
     OrcaSeer::Task::TaskControlBlock* task;
+    std::cout<<"task ptr"<<std::endl;
+    if(running->empty()){
+        std::cout<<"empty running"<<std::endl;
+    }
+    if(!running->empty()){
+        std::cout<<"not empty"<<std::endl;
+    }
+    if(!running->empty()){
     for (i = running->begin(); i != running->end(); ++i) {
         task = *i;
 
@@ -198,13 +211,19 @@ SimulationTime SimulationEngine::Schedule(
             this->blocked->push_back(task);
         }
     }
-
+    }
+    std::cout<<"post if"<<std::endl;
     // clear running list as tasks were added to other lists
     this->running->clear();
-
+    std::cout<<"post running clear"<<std::endl;
     std::list<OrcaSeer::Task::TaskControlBlock*> freed;
+    std::cout<<"freed instant"<<std::endl;
 
     // move tasks from blocked to the ready queue
+    std::cout<<"pre blocked mover"<<std::endl;
+    if(!blocked->empty())
+        std::cout<<"not blocked empty"<<std::endl;
+    if(!blocked->empty()){
     for (i = blocked->begin(); i != blocked->end(); ++i) {
         task = *i;
 
@@ -212,15 +231,19 @@ SimulationTime SimulationEngine::Schedule(
             this->ready->push_back(task);
             freed.push_back(task);
         }
-    }
+    }}
+    std::cout<<"post blocked mover"<<std::endl;
 
     // remove freed tasks from blocked list
+    std::cout<<"pre freed"<<std::endl;
+    if(!freed.empty()){
     for (i = freed.begin(); i != freed.end(); ++i)
-        this->blocked->remove(*i);
-
+        this->blocked->remove(*i);}
+    std::cout<<"post freed"<<std::endl;
     // sort ready list (using sort algorithm)
+    std::cout<<"pre schedule"<<std::endl;
     algorithm->Schedule(this->ready);
-
+    std::cout<<"post schedule"<<std::endl;
     // get first element and push it to the executing queue (if any)
     task = *(this->ready->begin());
 
@@ -239,14 +262,14 @@ SimulationTime SimulationEngine::Schedule(
 void SimulationEngine::PrintTaskLists() {
     std::list<OrcaSeer::Task::TaskControlBlock*>::iterator i;
     //i=running->begin();
-    if(i !=nullptr)
-        std::cout<<"aaaaaa nullptr"<<std::endl;
+    //if(i !=nullptr)
+        
     // print lists
     std::cout << "==============================================" << std::endl;
-    std::cout << this->systemTime<< " <-system time" << std::endl;
+    //std::cout << this->systemTime<< " <-system time" << std::endl;
     std::cout << "----- running" << std::endl;
     //std::cout << running->begin()<<std::endl;
-    
+   // std::cout<<running->begin()->this->id<<std::endl;
     for (i = running->begin(); i != running->end(); ++i){
         //if(*i=nullptr)
         //break;

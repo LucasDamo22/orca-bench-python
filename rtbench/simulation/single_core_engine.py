@@ -130,12 +130,12 @@ class SingleCoreEngine:
                 self._queue.add(top_event)
                 warn("running task")
 
-                info(
-                    iterations,
-                    next_task._period,
-                    next_task._capacity,
-                    next_task._deadline,
-                )
+                # info(
+                #     iterations,
+                #     next_task._period,
+                #     next_task._capacity,
+                #     next_task._deadline,
+                # )
             else:
                 warn("slack time")
             
@@ -158,7 +158,7 @@ class SingleCoreEngine:
             else:
                 t._release_time += t._period
                 t._current_capacity = 0
-                t._next_deadline += t._deadline
+                t._next_deadline += t._period
                 self._blocked.append(t)
 
         # clear running list as tasks were added to other lists
@@ -186,7 +186,7 @@ class SingleCoreEngine:
             self._running.append(task)
 
             if task._next_deadline < self._system_time:
-                error("missed deadline!")
+                error("missed deadline!",task._id)
 
         return self._system_time
 

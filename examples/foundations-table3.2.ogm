@@ -26,17 +26,12 @@
 #################################################################################
 
 
-# This is the example task s8et presented in the book Real-Time Systems Design and 
+# This is the example task set presented in the book Real-Time Systems Design and 
 # Analysis (Phillip A. Laplante, 3rd Ed.)
 
 
 [nodes]
 #id     task      period     capacity   deadline
-1       T1        20         3          20
-2       T2        5          2          5
-3       T3        10         2          10
-
-#cd old-ccp-migration
-#make
-#cd ..
-#./old-ccp-migration/bin/orca-rt-scheduler.exe 20 ./examples/foundations-table3.2.ogm EDF
+1       T1        20         3          7
+2       T2        5          2          4
+3       T3        10         2          8
