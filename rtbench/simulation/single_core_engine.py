@@ -24,7 +24,9 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
+from __future__ import annotations
 from queue import PriorityQueue
+
 
 from rtbench.io.terminal import warn, error, info  # debug, header
 from rtbench.modeling.graph import Graph
@@ -79,11 +81,16 @@ class SingleCoreEngine:
         start_time = 0
   
         while self._system_time < time:
-            #self.printready()
-            #self.printrunning()
-            #self.printblocked()
+            #if self._system_time == 9:
+                # self.printready()
+                # self.printrunning()
+                # self.printblocked()
+            # self._queue.printQueue()
             
             top_event: SystemEvent = self._queue.pop()
+            # if self._system_time == 9:
+            #     print(top_event.get_time())
+            #     print(top_event.get_type())
 
             self._elapsed_time = top_event._time - self._system_time
             self._system_time += self._elapsed_time
@@ -100,15 +107,25 @@ class SingleCoreEngine:
             self.schedule(self._algorithm)
 
             # Next event is the scheduler interruption
+            # if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
+            #     print(" ")
+            #     print("  true  ")
+            #     print(" ")
             if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
                 # remove all events from the simulation queue; since the
                 # scheduler_irq has been removed, only the event for the
                 # running task remains
                 while self._queue.__len__() > 0:
+                    #print("popping queue")
+                    #self._queue.printQueue()
                     self._queue.pop()
 
                 # register the interruption
-                irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
+                
+                if len(self._ready)==0:
+                    irq_event._time = self._system_time + (self.get_next_release(self._blocked) - self._system_time)
+                else:
+                    irq_event._time = self._system_time + self.SCHED_IRQ_PERIOD
                 self._queue.add(irq_event)
 
             # register next task finish within the simulation
@@ -188,7 +205,14 @@ class SingleCoreEngine:
             if task._next_deadline < self._system_time:
                 error("missed deadline!",task._id)
 
-        #return self._system_time
+        return self._system_time
+
+    def get_next_release(self:"SingleCoreEngine", r: List[TaskControlBlock] ):
+        r = sorted(r, key = lambda e: e._release_time, reverse = False)
+        aux = r[0]._release_time
+        # print("*********************8")
+        # print(aux)
+        return aux
 
     def print_task_list(self: "SingleCoreEngine"):
         info("==============================================")

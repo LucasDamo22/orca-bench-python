@@ -43,6 +43,10 @@ class PrioQueue:
             raise TypeError("Only SystemEvent objects can be added to the priority queue")
         self.queue.append(event)
         self._heapify_up(len(self.queue) - 1)
+    
+    def printQueue(self):
+        for t in self.queue:
+            print(t)
 
     def pop(self):
         if self.isEmpty():
