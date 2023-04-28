@@ -30,5 +30,6 @@ from rtbench.simulation.task_control_block import TaskControlBlock
 
 
 class RateMonotonic(SchedulingAlgorithm):
+    @classmethod
     def schedule(self: "RateMonotonic", r: list[TaskControlBlock]):
-        return sorted(r, key=lambda e: 1 / e._next_deadline, reverse=False)
+        return sorted(r, key=lambda e: (1 / e._next_deadline), reverse=False)

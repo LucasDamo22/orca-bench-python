@@ -32,4 +32,4 @@ from rtbench.simulation.task_control_block import TaskControlBlock
 class DeadlineMonotonic(SchedulingAlgorithm):
     @classmethod
     def schedule(self: "DeadlineMonotonic", r: list[TaskControlBlock]):
-        return sorted(r, key=lambda e: e.deadline, reverse=False)
+        return sorted(r, key=lambda e: e._deadline, reverse=False)

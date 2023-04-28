@@ -24,12 +24,4 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
-from __future__ import annotations
-from rtbench.scheduling.scheduling_algorithm import SchedulingAlgorithm
-from rtbench.simulation.task_control_block import TaskControlBlock
 
-
-class LeastSlackTime(SchedulingAlgorithm):
-    @classmethod
-    def schedule(self: "LeastSlackTime", r: list[TaskControlBlock]):
-        return sorted(r, key=lambda e: e._capacity - e._current_capacity, reverse=False)

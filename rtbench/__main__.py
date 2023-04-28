@@ -48,7 +48,7 @@ def main(args: list[str]):
             "applying the ALGORITHM scheduling."
         )
         exit(0)
-
+    
     ticks: int = int(args[0])
     graph_file: str = args[1]
     algorithm: str = args[2]

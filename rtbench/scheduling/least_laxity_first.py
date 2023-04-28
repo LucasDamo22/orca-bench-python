@@ -30,5 +30,6 @@ from rtbench.simulation.task_control_block import TaskControlBlock
 
 
 class LeastLaxityFirst(SchedulingAlgorithm):
+    @classmethod
     def schedule(self: "LeastLaxityFirst", r: list[TaskControlBlock]):
         return sorted(r, key=lambda e: (e._deadline - e._period), reverse=False)

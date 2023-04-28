@@ -26,6 +26,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 """
 from __future__ import annotations
 from queue import PriorityQueue
+from os.path import exists
+from os.path import join
+from os import remove
 
 
 from rtbench.io.terminal import warn, error, info  # debug, header
@@ -38,6 +41,7 @@ from rtbench.simulation.queue import PrioQueue
 
 class SingleCoreEngine:
     SCHED_IRQ_PERIOD = 20
+    SVG_CONST = 20
 
     def __init__(
         self: "SingleCoreEngine", task_graph: Graph, algorithm: SchedulingAlgorithm
@@ -49,6 +53,7 @@ class SingleCoreEngine:
         self._ready = []
 
         # populate blocked list with tasks from the graph
+
         for n in task_graph.get_nodes():
             tlb = TaskControlBlock(
                 n.get_data()["id"],
@@ -76,21 +81,15 @@ class SingleCoreEngine:
     def simulate(self: "SingleCoreEngine", time: int):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
         self._queue.add(irq_event)
+        self.svg_init(time)
 
         iterations = 0
         start_time = 0
   
         while self._system_time < time:
-            #if self._system_time == 9:
-                # self.printready()
-                # self.printrunning()
-                # self.printblocked()
-            # self._queue.printQueue()
+
             
             top_event: SystemEvent = self._queue.pop()
-            # if self._system_time == 9:
-            #     print(top_event.get_time())
-            #     print(top_event.get_type())
 
             self._elapsed_time = top_event._time - self._system_time
             self._system_time += self._elapsed_time
@@ -107,21 +106,15 @@ class SingleCoreEngine:
             self.schedule(self._algorithm)
 
             # Next event is the scheduler interruption
-            # if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
-            #     print(" ")
-            #     print("  true  ")
-            #     print(" ")
+
             if top_event.get_type() == SystemEventType.SCHEDULER_IRQ:
                 # remove all events from the simulation queue; since the
                 # scheduler_irq has been removed, only the event for the
                 # running task remains
                 while self._queue.__len__() > 0:
-                    #print("popping queue")
-                    #self._queue.printQueue()
                     self._queue.pop()
-
-                # register the interruption
-                
+               
+                # register the interruption                
                 if len(self._ready)==0:
                     irq_event._time = self._system_time + (self.get_next_release(self._blocked) - self._system_time)
                 else:
@@ -138,7 +131,7 @@ class SingleCoreEngine:
             start_time = self._system_time
             iterations += 1
             
-            # slack time
+            # slack timeclear
             if next_task is not None:
                 top_event._time = self._system_time + (
                      next_task._capacity - next_task._current_capacity
@@ -159,6 +152,7 @@ class SingleCoreEngine:
             
             info("sistem time", self._system_time)
             self.print_task_list()
+            #self.svg_print(time)
             
         return self._system_time
 
@@ -229,3 +223,61 @@ class SingleCoreEngine:
             info(str(t))
 
         info("==============================================")
+        
+    
+
+
+
+    def svg_init(self:"SingleCoreEngine", time: int):
+        #path to the svg file
+        filename = 'rtbench/data_out/taskgraph.svg'
+        #checking if it has already generated an svg
+        #if it has it deletes the old one and generates a new one
+        if exists(filename):
+            remove(filename)
+            
+        svg_out = open(filename,'a')
+        first_def =f'<svg width="{self.SVG_CONST * time + 50}" height="{500}" viewBox="-50 -50 850 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
+        svg_out.write(first_def)
+        
+        yaxis = f'<rect x="0" y="-10" width="1" height="{200}" fill="black" />\n'
+        yaxis+= f'<text x="15" y="{220}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
+        svg_out.write(yaxis)
+        
+        xaxis = f'<rect x="-10" y="0" width="{self.SVG_CONST* time}" height="1" fill="black" />\n'
+        xaxis+= f'<text x="{800+5}" y="3" font-size="14">Ticks</text>'#x do texto precisa ser o final do eixo +5
+        svg_out.write(xaxis)
+        
+        sec = 20
+        count = 1
+        ticksX = '\n'
+        for i in range(0,time):
+            ticksX += f'<text x="{sec+ 4 +i*self.SVG_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
+            ticksX += f'<rect x="{sec+i*self.SVG_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
+
+        svg_out.write(ticksX)
+        
+        
+        
+        
+            
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        if self._system_time >= time:
+            info("SVG file Generated with "+ str(time) +" ticks")
