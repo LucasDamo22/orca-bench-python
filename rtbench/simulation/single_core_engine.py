@@ -41,7 +41,9 @@ from rtbench.simulation.queue import PrioQueue
 
 class SingleCoreEngine:
     SCHED_IRQ_PERIOD = 20
-    SVG_CONST = 20
+    SVG_TICK_CONST = 20
+    SVG_TH_CONST = 30
+    colors = []
 
     def __init__(
         self: "SingleCoreEngine", task_graph: Graph, algorithm: SchedulingAlgorithm
@@ -81,13 +83,14 @@ class SingleCoreEngine:
     def simulate(self: "SingleCoreEngine", time: int):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
         self._queue.add(irq_event)
-        self.svg_init(time)
-
+        self.svg_init(time,len(self._blocked))
+        
         iterations = 0
         start_time = 0
   
         while self._system_time < time:
 
+            
             
             top_event: SystemEvent = self._queue.pop()
 
@@ -104,6 +107,7 @@ class SingleCoreEngine:
             # put the finished task into the blocked queue and process
             # a new task to take its place
             self.schedule(self._algorithm)
+            
 
             # Next event is the scheduler interruption
 
@@ -152,6 +156,7 @@ class SingleCoreEngine:
             
             info("sistem time", self._system_time)
             self.print_task_list()
+            self.svg_append(self._running)
             #self.svg_print(time)
             
         return self._system_time
@@ -228,7 +233,7 @@ class SingleCoreEngine:
 
 
 
-    def svg_init(self:"SingleCoreEngine", time: int):
+    def svg_init(self:"SingleCoreEngine", time: int,nTasks):
         #path to the svg file
         filename = 'rtbench/data_out/taskgraph.svg'
         #checking if it has already generated an svg
@@ -237,47 +242,38 @@ class SingleCoreEngine:
             remove(filename)
             
         svg_out = open(filename,'a')
-        first_def =f'<svg width="{self.SVG_CONST * time + 50}" height="{500}" viewBox="-50 -50 850 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
+        first_def =f'<svg width="{self.SVG_TICK_CONST * time + 50}" height="{500}" viewBox="-50 -50 850 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
         svg_out.write(first_def)
         
-        yaxis = f'<rect x="0" y="-10" width="1" height="{200}" fill="black" />\n'
-        yaxis+= f'<text x="15" y="{220}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
+        yaxis = f'<rect x="0" y="-10" width="1" height="{self.SVG_TH_CONST*nTasks+20}" fill="black" />\n'
+        yaxis+= f'<text x="15" y="{self.SVG_TH_CONST*nTasks+40}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
         svg_out.write(yaxis)
         
-        xaxis = f'<rect x="-10" y="0" width="{self.SVG_CONST* time}" height="1" fill="black" />\n'
-        xaxis+= f'<text x="{800+5}" y="3" font-size="14">Ticks</text>'#x do texto precisa ser o final do eixo +5
+        xaxis = f'<rect x="-10" y="0" width="{self.SVG_TICK_CONST* time+20}" height="1" fill="black" />\n'
+        xaxis+= f'<text x="{self.SVG_TICK_CONST* time+60}" y="3" font-size="14" text-anchor="end">Ticks</text>'#x do texto precisa ser o final do eixo +5
         svg_out.write(xaxis)
         
         sec = 20
         count = 1
         ticksX = '\n'
         for i in range(0,time):
-            ticksX += f'<text x="{sec+ 4 +i*self.SVG_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
-            ticksX += f'<rect x="{sec+i*self.SVG_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
+            ticksX += f'<text x="{sec+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
+            ticksX += f'<rect x="{sec+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
 
         svg_out.write(ticksX)
+    
+    def svg_append(self:"SingleCoreEngine",r:list[TaskControlBlock]):
+        filename = 'rtbench/data_out/taskgraph.svg'
+        if not exists(filename):
+            svg_init()
+        svg_out = open(filename,'a')
+        for t in r:
+            print()
+            #color = get_color(t._id)
+            #taskBlock = 
         
         
-        
-        
-            
-
-
-        
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-        if self._system_time >= time:
-            info("SVG file Generated with "+ str(time) +" ticks")
