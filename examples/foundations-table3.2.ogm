@@ -33,5 +33,5 @@
 [nodes]
 #id     task      period     capacity   deadline
 1       T1        20         3          7
-2       T2        5          2          4
-3       T3        10         2          8
+2       T2        10         2          8
+3       T3        5          2          4

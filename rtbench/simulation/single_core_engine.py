@@ -31,12 +31,13 @@ from os.path import join
 from os import remove
 
 
-from rtbench.io.terminal import warn, error, info  # debug, header
+from rtbench.io.terminal import warn, error, info, debug #header
 from rtbench.modeling.graph import Graph
 from rtbench.scheduling.scheduling_algorithm import SchedulingAlgorithm
 from rtbench.simulation.task_control_block import TaskControlBlock
 from rtbench.simulation.system_event import SystemEvent, SystemEventType
 from rtbench.simulation.queue import PrioQueue
+
 import random 
 
 
@@ -81,7 +82,7 @@ class SingleCoreEngine:
             print(f"BLOCKED - id {t._id} current {t._current_capacity} capa {t._capacity}")
 
 
-    def simulate(self: "SingleCoreEngine", time: int):
+    def simulate(self: "SingleCoreEngine", time: int, trace: bool):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
         self._queue.add(irq_event)
         self.svg_init(time)
@@ -157,8 +158,10 @@ class SingleCoreEngine:
             
             info("sistem time", self._system_time)
             self.print_task_list()
+            self.log_tasks()
             self.svg_append(self._running,time)
             #self.svg_print(time)
+            debug("sdjasdj")
             
         return self._system_time
 
@@ -229,6 +232,36 @@ class SingleCoreEngine:
             info(str(t))
 
         info("==============================================")
+    def log_tasks(self: "SingleCoreEngine"):
+        filename = 'rtbench/data_out/aa.txt'
+        
+
+        #print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        
+
+        log_out = open(filename, 'a')
+        log_out.write("=====================\n")
+        blocked_text = f'blocked {self._system_time}\n'
+        log_out.write(blocked_text)
+        for t in self._blocked:
+            data = f'{str(t)} \n'
+            log_out.write(data)
+
+        ready_text = f'ready {self._system_time}\n'
+        log_out.write(ready_text)
+        for t in self._ready:
+            data2 = f'{str(t)} \n'
+            log_out.write(data2)
+
+        
+        running_text = f'running {self._system_time}\n'
+        log_out.write(running_text)
+        for t in self._running:
+            data3 = f'{str(t)} \n'
+            log_out.write(data3)
+        log_out.write("=====================\n")
+
+
         
     
 
@@ -242,15 +275,16 @@ class SingleCoreEngine:
         #if it has it deletes the old one and generates a new one
         if exists(filename):
             remove(filename)
-            
-        svg_out = open(filename,'a')
-        first_def =f'<svg width="{self.SVG_TICK_CONST * time + 50}" height="{self.SVG_TH_CONST*len(self._blocked)+50}" viewBox="-50 -50 {self.SVG_TH_CONST*len(self._blocked)} {self.SVG_TICK_CONST * time}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
-        svg_out.write(first_def)
         
+        #svg header
+        svg_out = open(filename,'a')
+        first_def =f'<svg width="{self.SVG_TICK_CONST * time+300}" height="{self.SVG_TICK_CONST * time+100}" viewBox="-50 -50 {self.SVG_TH_CONST*len(self._blocked)} {self.SVG_TICK_CONST * time}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
+        svg_out.write(first_def)
+        #svg y axis
         yaxis = f'<rect x="0" y="-10" width="1" height="{self.SVG_TH_CONST*len(self._blocked)+20}" fill="black" />\n'
         yaxis+= f'<text x="15" y="{self.SVG_TH_CONST*len(self._blocked)+40}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
         svg_out.write(yaxis)
-        
+        #svg x axis
         xaxis = f'<rect x="-10" y="0" width="{self.SVG_TICK_CONST* time+20}" height="1" fill="black" />\n'
         xaxis+= f'<text x="{self.SVG_TICK_CONST* time+60}" y="3" font-size="14" text-anchor="end">Ticks</text>\n'#x do texto precisa ser o final do eixo +5
         svg_out.write(xaxis)
@@ -290,13 +324,17 @@ class SingleCoreEngine:
         else:
             svg_out = open(filename,'a')
             ticksX = '\n'
+            #creating the dots of the graph
             for i in range(0,time):
-                ticksX += f'<text x="{self.SVG_TICK_CONST+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
+                #rotated caption ticks
+                ticksX += f'<text x="{self.SVG_TICK_CONST +i*self.SVG_TICK_CONST +4 }" y="-15" font-size="11"  transform="rotate(-90,{self.SVG_TICK_CONST +i*self.SVG_TICK_CONST},-20 )" text-anchor="end">{i+1}</text>\n'
+                #ticks
                 ticksX += f'<rect x="{self.SVG_TICK_CONST+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
 
             svg_out.write(ticksX)
-            
+            #closing the svg file
             svg_out.write('</svg>')
+        svg_out.close()
 
     
 

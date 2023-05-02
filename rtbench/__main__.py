@@ -41,10 +41,10 @@ from rtbench.scheduling.rate_monotonic import RateMonotonic
 
 def main(args: list[str]):
     # make sure we have all the arguments
-    if len(args) != 3:
-        print("Usage: python3 -m rtbench <TICKS> <APPGRAPH> <ALGORITHM>")
+    if len(args) <3 or len(args) > 4:
+        print("Usage: python3 -m rtbench <ticks> <app> <algorithm> [trace]")
         print(
-            "Produces a simulation trace of TICKS length for the given APPGRAPH, "
+            "Produces a simulation trace of ticks length for the given APPGRAPH, "
             "applying the ALGORITHM scheduling."
         )
         exit(0)
@@ -52,6 +52,10 @@ def main(args: list[str]):
     ticks: int = int(args[0])
     graph_file: str = args[1]
     algorithm: str = args[2]
+    
+
+    trace = (len(args) == 4 and args[3]== 'trace')
+
 
     info(f"** Ticks: {ticks}")
     info(f"** Graph: {graph_file}")
@@ -62,16 +66,16 @@ def main(args: list[str]):
     info(f"** Parsed data: {graph}")
 
     algorithms = {
-        "EDF": EarliestDeadlineFirst,
-        "RM": RateMonotonic,
-        "DM": DeadlineMonotonic,
-        "LST": LeastSlackTime,
-        "LLF": LeastLaxityFirst,
+        "edf": EarliestDeadlineFirst,
+        "rm": RateMonotonic,
+        "dm": DeadlineMonotonic,
+        "lst": LeastSlackTime,
+        "llf": LeastLaxityFirst,
     }
 
     alg_class = algorithms[algorithm]
     engine = SingleCoreEngine(graph, alg_class)
-    engine.simulate(ticks)
+    engine.simulate(ticks, trace)
 
 
 if __name__ == "__main__":

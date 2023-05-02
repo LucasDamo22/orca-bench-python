@@ -38,7 +38,7 @@ def header(*msg, end=TERMINAL_ENDLINE):
 
 def debug(*msg, end=TERMINAL_ENDLINE):
     if TERMINAL_ENABLE_DEBUG:
-        raw_print("warn", msg, colors.DEBUG, end)
+        raw_print("debug", msg, colors.DEBUG, end)
 
 
 def warn(*msg, end=TERMINAL_ENDLINE):
