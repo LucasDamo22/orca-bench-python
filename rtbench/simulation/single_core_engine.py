@@ -37,6 +37,7 @@ from rtbench.scheduling.scheduling_algorithm import SchedulingAlgorithm
 from rtbench.simulation.task_control_block import TaskControlBlock
 from rtbench.simulation.system_event import SystemEvent, SystemEventType
 from rtbench.simulation.queue import PrioQueue
+import random 
 
 
 class SingleCoreEngine:
@@ -83,7 +84,7 @@ class SingleCoreEngine:
     def simulate(self: "SingleCoreEngine", time: int):
         irq_event: SystemEvent = SystemEvent(0, SystemEventType.SCHEDULER_IRQ)
         self._queue.add(irq_event)
-        self.svg_init(time,len(self._blocked))
+        self.svg_init(time)
         
         iterations = 0
         start_time = 0
@@ -156,7 +157,7 @@ class SingleCoreEngine:
             
             info("sistem time", self._system_time)
             self.print_task_list()
-            self.svg_append(self._running)
+            self.svg_append(self._running,time)
             #self.svg_print(time)
             
         return self._system_time
@@ -233,8 +234,9 @@ class SingleCoreEngine:
 
 
 
-    def svg_init(self:"SingleCoreEngine", time: int,nTasks):
+    def svg_init(self:"SingleCoreEngine", time: int):
         #path to the svg file
+        self.setColors()
         filename = 'rtbench/data_out/taskgraph.svg'
         #checking if it has already generated an svg
         #if it has it deletes the old one and generates a new one
@@ -242,38 +244,67 @@ class SingleCoreEngine:
             remove(filename)
             
         svg_out = open(filename,'a')
-        first_def =f'<svg width="{self.SVG_TICK_CONST * time + 50}" height="{500}" viewBox="-50 -50 850 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
+        first_def =f'<svg width="{self.SVG_TICK_CONST * time + 50}" height="{self.SVG_TH_CONST*len(self._blocked)+50}" viewBox="-50 -50 {self.SVG_TH_CONST*len(self._blocked)} {self.SVG_TICK_CONST * time}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
         svg_out.write(first_def)
         
-        yaxis = f'<rect x="0" y="-10" width="1" height="{self.SVG_TH_CONST*nTasks+20}" fill="black" />\n'
-        yaxis+= f'<text x="15" y="{self.SVG_TH_CONST*nTasks+40}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
+        yaxis = f'<rect x="0" y="-10" width="1" height="{self.SVG_TH_CONST*len(self._blocked)+20}" fill="black" />\n'
+        yaxis+= f'<text x="15" y="{self.SVG_TH_CONST*len(self._blocked)+40}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
         svg_out.write(yaxis)
         
         xaxis = f'<rect x="-10" y="0" width="{self.SVG_TICK_CONST* time+20}" height="1" fill="black" />\n'
-        xaxis+= f'<text x="{self.SVG_TICK_CONST* time+60}" y="3" font-size="14" text-anchor="end">Ticks</text>'#x do texto precisa ser o final do eixo +5
+        xaxis+= f'<text x="{self.SVG_TICK_CONST* time+60}" y="3" font-size="14" text-anchor="end">Ticks</text>\n'#x do texto precisa ser o final do eixo +5
         svg_out.write(xaxis)
-        
-        sec = 20
-        count = 1
-        ticksX = '\n'
-        for i in range(0,time):
-            ticksX += f'<text x="{sec+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
-            ticksX += f'<rect x="{sec+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
 
-        svg_out.write(ticksX)
+        #taskIds
+        for t in self._blocked:
+            taskId = f'<text x="-15" y="{(t._id*self.SVG_TH_CONST)-7}" font-size="12" text-anchor="end">{t._name}</text>\n'
+            svg_out.write(taskId)
+
+        
+        count = 1
+        # ticksX = '\n'
+        # for i in range(0,time):
+        #     ticksX += f'<text x="{sec+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
+        #     ticksX += f'<rect x="{sec+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
+
+        # svg_out.write(ticksX)
     
-    def svg_append(self:"SingleCoreEngine",r:list[TaskControlBlock]):
+    def svg_append(self:"SingleCoreEngine",r:list[TaskControlBlock],time:int):
         filename = 'rtbench/data_out/taskgraph.svg'
         if not exists(filename):
-            svg_init()
+            svg_init(time)
         svg_out = open(filename,'a')
+        if(self._system_time>=time):
+            self.svg_end(time)
+            return
         for t in r:
             print()
             #color = get_color(t._id)
-            #taskBlock = 
+            taskRect = f'<rect x="{self._system_time*self.SVG_TICK_CONST+1}" y="{(t._id-1)*30+1}" width="{t._capacity*self.SVG_TICK_CONST}" height="30" fill="{self.colors[t._id-1]}"/>\n' 
+            svg_out.write(taskRect)
         
-        
+    def svg_end(self:"SingleCoreEngine",time):
+        filename = 'rtbench/data_out/taskgraph.svg'
+        if not exists(filename):
+            return
+        else:
+            svg_out = open(filename,'a')
+            ticksX = '\n'
+            for i in range(0,time):
+                ticksX += f'<text x="{self.SVG_TICK_CONST+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
+                ticksX += f'<rect x="{self.SVG_TICK_CONST+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
+
+            svg_out.write(ticksX)
+            
+            svg_out.write('</svg>')
+
+    
 
 
+    def setColors(self:"SingleCoreEngine"):
+        r = lambda: random.randint(0, 220)
+        for t in range(0,len(self._blocked)):
+            self.colors.append("#{:02x}{:02x}{:02x}".format(r(), r(), r()))
+        return
 
 

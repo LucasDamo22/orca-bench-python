@@ -1,7 +1,18 @@
-<svg width="450" height="500" viewBox="-50 -50 850 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+<svg width="450" height="140" viewBox="-50 -50 90 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
 <rect x="0" y="-10" width="1" height="110" fill="black" />
 <text x="15" y="130" font-size="14" text-anchor="end">Tasks</text><rect x="-10" y="0" width="420" height="1" fill="black" />
 <text x="460" y="3" font-size="14" text-anchor="end">Ticks</text>
+<text x="-15" y="23" font-size="12" text-anchor="end">T1</text>
+<text x="-15" y="53" font-size="12" text-anchor="end">T2</text>
+<text x="-15" y="83" font-size="12" text-anchor="end">T3</text>
+<rect x="1" y="31" width="40" height="30" fill="#7398ab"/>
+<rect x="41" y="1" width="60" height="30" fill="#d2bba8"/>
+<rect x="101" y="61" width="40" height="30" fill="#87ad94"/>
+<rect x="141" y="31" width="40" height="30" fill="#7398ab"/>
+<rect x="201" y="31" width="40" height="30" fill="#7398ab"/>
+<rect x="241" y="61" width="40" height="30" fill="#87ad94"/>
+<rect x="301" y="31" width="40" height="30" fill="#7398ab"/>
+
 <text x="24" y="-8" font-size="11" text-anchor="end">1</text>
 <rect x="20" y="-5" width="1" height="10" fill="black"/>
 <text x="44" y="-8" font-size="11" text-anchor="end">2</text>
@@ -42,3 +53,4 @@
 <rect x="380" y="-5" width="1" height="10" fill="black"/>
 <text x="404" y="-8" font-size="11" text-anchor="end">20</text>
 <rect x="400" y="-5" width="1" height="10" fill="black"/>
+</svg>
