@@ -31,12 +31,14 @@ from os.path import join
 from os import remove
 
 
-from rtbench.io.terminal import warn, error, info, debug #header
+from rtbench.io.terminal import warn, error, info, debug, log #header
+from rtbench.io.svg_out import logInit
 from rtbench.modeling.graph import Graph
 from rtbench.scheduling.scheduling_algorithm import SchedulingAlgorithm
 from rtbench.simulation.task_control_block import TaskControlBlock
 from rtbench.simulation.system_event import SystemEvent, SystemEventType
 from rtbench.simulation.queue import PrioQueue
+from rtbench.io.svg_out import SvgOut
 
 import random 
 
@@ -67,7 +69,7 @@ class SingleCoreEngine:
                 n.get_data()["deadline"],
             )
             self._blocked.append(tlb)
-            
+        
         self._algorithm = algorithm
 
 
@@ -89,6 +91,9 @@ class SingleCoreEngine:
         
         iterations = 0
         start_time = 0
+        log("#",flush = True)
+        self.log_task_list()
+
   
         while self._system_time < time:
 
@@ -156,12 +161,12 @@ class SingleCoreEngine:
             else:
                 warn("slack time")
             
-            info("sistem time", self._system_time)
+            info("system time", self._system_time)
             self.print_task_list()
-            self.log_tasks()
+            #self.log_tasks()
             self.svg_append(self._running,time)
             #self.svg_print(time)
-            debug("sdjasdj")
+            self.log_task_list()
             
         return self._system_time
 
@@ -232,6 +237,27 @@ class SingleCoreEngine:
             info(str(t))
 
         info("==============================================")
+
+
+    
+    def log_task_list(self: "SingleCoreEngine"):
+
+        #log("==============================================")
+        log ("----- running")
+        for t in self._running:
+            log(t.str_log())
+
+        log("----- ready")
+        for t in self._ready:
+            log(t.str_log())
+
+        log("----- blocked")
+        for t in self._blocked:
+            log(t.str_log())
+
+        log("==============================================")
+        
+
     def log_tasks(self: "SingleCoreEngine"):
         filename = 'rtbench/data_out/aa.txt'
         
@@ -243,9 +269,14 @@ class SingleCoreEngine:
         log_out.write("=====================\n")
         blocked_text = f'blocked {self._system_time}\n'
         log_out.write(blocked_text)
+
+
         for t in self._blocked:
             data = f'{str(t)} \n'
-            log_out.write(data)
+
+            logText = f'{t._id} {t._name} {t._current_capacity} {t._capacity} {t._next_deadline} {t._deadline} \n'
+
+            log_out.write(logText)
 
         ready_text = f'ready {self._system_time}\n'
         log_out.write(ready_text)
@@ -264,44 +295,6 @@ class SingleCoreEngine:
 
         
     
-
-
-
-    def svg_init(self:"SingleCoreEngine", time: int):
-        #path to the svg file
-        self.setColors()
-        filename = 'rtbench/data_out/taskgraph.svg'
-        #checking if it has already generated an svg
-        #if it has it deletes the old one and generates a new one
-        if exists(filename):
-            remove(filename)
-        
-        #svg header
-        svg_out = open(filename,'a')
-        first_def =f'<svg width="{self.SVG_TICK_CONST * time+300}" height="{self.SVG_TICK_CONST * time+100}" viewBox="-50 -50 {self.SVG_TH_CONST*len(self._blocked)} {self.SVG_TICK_CONST * time}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">\n'
-        svg_out.write(first_def)
-        #svg y axis
-        yaxis = f'<rect x="0" y="-10" width="1" height="{self.SVG_TH_CONST*len(self._blocked)+20}" fill="black" />\n'
-        yaxis+= f'<text x="15" y="{self.SVG_TH_CONST*len(self._blocked)+40}" font-size="14" text-anchor="end">Tasks</text>'#y do texto precisa ser o final do eixo +20
-        svg_out.write(yaxis)
-        #svg x axis
-        xaxis = f'<rect x="-10" y="0" width="{self.SVG_TICK_CONST* time+20}" height="1" fill="black" />\n'
-        xaxis+= f'<text x="{self.SVG_TICK_CONST* time+60}" y="3" font-size="14" text-anchor="end">Ticks</text>\n'#x do texto precisa ser o final do eixo +5
-        svg_out.write(xaxis)
-
-        #taskIds
-        for t in self._blocked:
-            taskId = f'<text x="-15" y="{(t._id*self.SVG_TH_CONST)-7}" font-size="12" text-anchor="end">{t._name}</text>\n'
-            svg_out.write(taskId)
-
-        
-        count = 1
-        # ticksX = '\n'
-        # for i in range(0,time):
-        #     ticksX += f'<text x="{sec+ 4 +i*self.SVG_TICK_CONST}" y="-8" font-size="11" text-anchor="end">{i+1}</text>\n'
-        #     ticksX += f'<rect x="{sec+i*self.SVG_TICK_CONST}" y="-5" width="1" height="10" fill="black"/>\n'
-
-        # svg_out.write(ticksX)
     
     def svg_append(self:"SingleCoreEngine",r:list[TaskControlBlock],time:int):
         filename = 'rtbench/data_out/taskgraph.svg'

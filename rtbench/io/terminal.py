@@ -50,3 +50,12 @@ def raw_print(label, msg, cbegin, end=TERMINAL_ENDLINE):
     strnow = now.strftime("%H:%M:%S")
     args = " ".join([str(i) for i in msg])
     print(f"{cbegin} [{label} {strnow}] {args}{colors.END}", end=end)
+
+def log(*msg, flush = False):
+    args = " ".join([str(i) for i in msg])
+    #debug(msg)
+    filename = 'rtbench/data_out/log.txt'
+    mode  = "a" if (flush == False) else "w"
+    with open (filename, mode) as log_out:
+        log_out.write(args + "\n")
+

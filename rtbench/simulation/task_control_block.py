@@ -53,6 +53,10 @@ class TaskControlBlock:
         ss += ", p:" + str(self._period)
         ss += ", c:" + str(self._current_capacity) + "/" + str(self._capacity)
         ss += ", d:" + str(self._next_deadline) + "/" + str(self._deadline)
-        ss += ", " + str(self._current_capacity)
+      
         return ss
+
+    def str_log(self: "TaskControlBlock"):
+        ss = f'{self._id} {self._name} {self._current_capacity} {self._capacity} {self._next_deadline} {self._period} {self._release_time}'
+        return ss 
         
